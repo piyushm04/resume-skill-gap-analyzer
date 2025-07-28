@@ -1,75 +1,49 @@
 import streamlit as st
+from skill_extractor import extract_skills_from_resume
+from jd_parser import extract_skills_from_jd
+from visualization import plot_skill_comparison, display_cards
 import json
-import os
-from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
-from jd_parser import parse_job_description
-from visualization import plot_skill_comparison, display_cards, display_loading
 
-# Load and apply custom CSS
+st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
+
 def load_css():
-    css_path = "assets/styles.css"
-    if os.path.exists(css_path):
-        with open(css_path) as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    else:
-        st.warning("⚠️ 'styles.css' not found in assets folder.")
+    with open("assets/styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Load company coding questions
 def load_questions():
-    with open("company_coding_questions.json") as f:
-        return json.load(f)
+    with open("company_coding_questions.json", "r") as file:
+        return json.load(file)
 
-# Main logic
 def main():
-    st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
     load_css()
+    st.markdown("<h1 class='main-title'>Resume Skill Gap Analyzer</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='subtitle'>Upload your resume and job description to find missing skills and prepare better!</p>", unsafe_allow_html=True)
 
-    # --- Navigation Bar ---
-    st.markdown("""
-    <nav class="navbar">
-        <div class="nav-container">
-            <h2 class="nav-title">Resume Skill Gap Analyzer</h2>
-        </div>
-    </nav>
-    """, unsafe_allow_html=True)
+    resume_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
+    jd_text = st.text_area("Paste the job description here")
 
-    st.markdown("### 📄 Upload Your Resume (in .docx format)")
-    resume_file = st.file_uploader("Upload your resume", type=["docx"])
-
-    st.markdown("### 💼 Paste Job Description")
-    job_desc_input = st.text_area("Paste the job description here...", height=200)
-
-    if st.button("Analyze"):
-        if resume_file and job_desc_input:
-            display_loading()
-
-            # Extract skills
+    if st.button("Analyze") and resume_file and jd_text:
+        with st.spinner("Analyzing..."):
             resume_skills = extract_skills_from_resume(resume_file)
-            parsed_jd = parse_job_description(job_desc_input)
-            jd_skills = extract_skills_from_jd(parsed_jd)
+            jd_skills = extract_skills_from_jd(jd_text)
 
-            # Visualizations
+            matched_skills = resume_skills & jd_skills
+            missing_skills = jd_skills - resume_skills
+
+            display_cards("Matched Skills", matched_skills, "#d4edda")
+            display_cards("Missing Skills", missing_skills, "#f8d7da")
             plot_skill_comparison(resume_skills, jd_skills)
 
-            # Display skills
-            matched = resume_skills & jd_skills
-            missing = jd_skills - resume_skills
-
-            display_cards("✅ Skills in Resume & JD", matched, "#d4edda")
-            display_cards("❌ Missing Skills (Important to Learn)", missing, "#f8d7da")
-
-            # Show most asked questions
-            st.markdown("### 💡 Top Coding Questions Asked by the Company")
+            st.markdown("### 🔍 Top 5 Most Asked Questions by the Company")
             questions_data = load_questions()
-
-            for company, questions in questions_data.items():
-                if company.lower() in job_desc_input.lower():
-                    for q in questions[:5]:
-                        st.markdown(f"• {q}")
+            company_name = "default"
+            for key in questions_data:
+                if key.lower() in jd_text.lower():
+                    company_name = key
                     break
-        else:
-            st.warning("Please upload a resume and enter a job description.")
+            questions = questions_data.get(company_name, [])[:5]
+            for i, q in enumerate(questions, 1):
+                st.markdown(f"**{i}. {q}**")
 
-# Run the app
 if __name__ == "__main__":
     main()
