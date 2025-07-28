@@ -1,0 +1,16 @@
+{
+  "Google": [
+    "What is the time complexity of quicksort?",
+    "Explain dynamic programming with an example.",
+    "What are hashmaps and how are they used?",
+    "How do you detect a cycle in a graph?",
+    "What is the difference between BFS and DFS?"
+  ],
+  "Microsoft": [
+    "What is a linked list?",
+    "Implement LRU cache.",
+    "Explain OOP concepts.",
+    "How do you reverse a string?",
+    "What are stacks and queues?"
+  ]
+}
