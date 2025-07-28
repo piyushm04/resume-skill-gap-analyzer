@@ -1,5 +1,6 @@
 import streamlit as st
-from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
+from resume_skill_gap_analyzer.skill_extractor import extract_skills_from_resume, extract_skills_from_jd
+
 from jd_parser import get_top_missing_skills
 from visualization import plot_skill_match_pie
 import json
