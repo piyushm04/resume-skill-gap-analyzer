@@ -1,74 +1,82 @@
 import streamlit as st
-import base64
-import json
-from PyPDF2 import PdfReader
 from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
 from jd_parser import get_top_missing_skills
 from visualization import plot_skill_match_pie
+import json
+import base64
+import os
 
 # Load custom CSS
 def load_css():
-    with open("assets/styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    css_path = os.path.join("assets", "styles.css")
+    if os.path.exists(css_path):
+        with open(css_path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    else:
+        st.warning("Custom CSS file not found.")
 
-# Load company coding questions
+# Load company questions JSON
 def load_company_questions():
     try:
         with open("company_coding_questions.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
+        st.error("company_coding_questions.json file not found.")
         return {}
 
-def get_pdf_text(uploaded_file):
-    try:
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    except:
-        return ""
+# Download button helper
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
 
-# Streamlit App
 def main():
+    st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide", page_icon="📄")
     load_css()
-    st.title("Resume Skill Gap Analyzer")
 
-    st.markdown("Upload your **Resume (PDF)** and paste the **Job Description** below:")
+    st.title("🎯 Resume Skill Gap Analyzer")
+    st.markdown("Compare your resume with job descriptions and get top missing skills + interview questions.")
 
-    resume_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
-    jd_text = st.text_area("Paste Job Description")
+    uploaded_resume = st.file_uploader("Upload your Resume (PDF or DOCX)", type=["pdf", "docx"])
+    jd_text = st.text_area("Paste Job Description here")
 
-    company_name = st.text_input("Target Company (Optional)")
+    if st.button("Analyze"):
+        if uploaded_resume and jd_text.strip():
+            with st.spinner("Extracting skills..."):
+                resume_skills = extract_skills_from_resume(uploaded_resume)
+                jd_skills = extract_skills_from_jd(jd_text)
 
-    if st.button("Analyze") and resume_file and jd_text:
-        resume_text = get_pdf_text(resume_file)
+            missing_skills = get_top_missing_skills(resume_skills, jd_skills)
 
-        resume_skills = extract_skills_from_resume(resume_text)
-        jd_skills = extract_skills_from_jd(jd_text)
+            st.subheader("🧠 Skill Comparison")
+            col1, col2 = st.columns(2)
+            col1.markdown("**Skills in Resume**")
+            col1.write(", ".join(resume_skills) or "None Found")
 
-        matched_skills = list(set(resume_skills) & set(jd_skills))
-        missing_skills = list(set(jd_skills) - set(resume_skills))
+            col2.markdown("**Skills in Job Description**")
+            col2.write(", ".join(jd_skills) or "None Found")
 
-        st.subheader("Skill Match Summary")
-        st.markdown(f"✅ **Matched Skills ({len(matched_skills)}):** {', '.join(matched_skills)}")
-        st.markdown(f"❌ **Missing Skills ({len(missing_skills)}):** {', '.join(missing_skills)}")
-
-        # Plot
-        plot_skill_match_pie(len(matched_skills), len(missing_skills))
-
-        # Show top coding questions
-        if company_name:
-            company_questions = load_company_questions()
-            questions = company_questions.get(company_name.strip().lower())
-            if questions:
-                st.subheader(f"Top Coding Questions Asked by {company_name.title()}")
-                for i, q in enumerate(questions[:5], 1):
-                    st.markdown(f"**Q{i}:** {q}")
+            st.subheader("❌ Missing Skills")
+            if missing_skills:
+                st.write(", ".join(missing_skills))
             else:
-                st.info("No coding question data available for this company.")
-    elif st.button("Analyze"):
-        st.error("Please upload a resume and paste a job description.")
+                st.success("Great! Your resume covers all major JD skills.")
+
+            st.subheader("📊 Visualization")
+            plot_skill_match_pie(resume_skills, jd_skills)
+
+            # Company-based question suggestion
+            st.subheader("💡 Most Asked Interview Questions")
+            company_questions = load_company_questions()
+            for company, questions in company_questions.items():
+                if any(skill.lower() in company.lower() for skill in jd_skills):
+                    st.markdown(f"**{company}**")
+                    for q in questions[:5]:
+                        st.markdown(f"- {q}")
+        else:
+            st.warning("Please upload a resume and paste a job description.")
 
 if __name__ == "__main__":
     main()
