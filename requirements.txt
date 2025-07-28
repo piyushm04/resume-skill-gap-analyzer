@@ -1,6 +1,7 @@
 streamlit
 PyPDF2
 matplotlib
+docx2txt
 streamlit-lottie
 requests
 pandas
