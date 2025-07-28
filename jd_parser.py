@@ -1,13 +1,13 @@
-# jd_parser.py
-
 import re
 
-def clean_text(text):
-    """Remove special characters and extra spaces."""
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    return re.sub(r'\s+', ' ', text).strip().lower()
+def parse_job_description(text):
+    return text.lower()
 
-def extract_skills_from_jd(jd_text, known_skills):
-    """Extract matching skills from the job description."""
-    jd_clean = clean_text(jd_text)
-    return {skill for skill in known_skills if skill.lower() in jd_clean}
+def extract_skills_from_jd(text, skill_set):
+    jd_text = parse_job_description(text)
+    found_skills = set()
+    for skill in skill_set:
+        pattern = r'\b' + re.escape(skill.lower()) + r'\b'
+        if re.search(pattern, jd_text):
+            found_skills.add(skill.lower())
+    return found_skills
