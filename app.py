@@ -3,7 +3,7 @@ import json
 import time
 from skill_extractor import extract_skills_from_resume
 from jd_parser import extract_skills_from_jd, parse_job_description
-from visualization import plot_skill_match_pie
+from visualization import plot_skill_comparison, display_cards, display_loading
 from streamlit_lottie import st_lottie
 
 
