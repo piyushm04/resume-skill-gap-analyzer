@@ -1,72 +1,74 @@
 import streamlit as st
-from resume_skill_gap_analyzer.skill_extractor import extract_skills_from_resume, extract_skills_from_jd
-
+import base64
+import json
+from PyPDF2 import PdfReader
+from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
 from jd_parser import get_top_missing_skills
 from visualization import plot_skill_match_pie
-import json
-import base64
 
-# Load CSS
+# Load custom CSS
 def load_css():
-    with open("assets/style.css") as f:  # Corrected the file name
+    with open("assets/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Load animation (optional for UI enhancement)
-def load_lottie_animation():
-    with open("assets/animations.json", "r") as f:
-        return json.load(f)
+# Load company coding questions
+def load_company_questions():
+    try:
+        with open("company_coding_questions.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
+def get_pdf_text(uploaded_file):
+    try:
+        reader = PdfReader(uploaded_file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        return text
+    except:
+        return ""
+
+# Streamlit App
 def main():
-    st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
     load_css()
+    st.title("Resume Skill Gap Analyzer")
 
-    st.markdown("<h1 class='title'>Resume Skill Gap Analyzer</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='subtitle'>Compare your resume against the job description and improve your chances.</p>", unsafe_allow_html=True)
+    st.markdown("Upload your **Resume (PDF)** and paste the **Job Description** below:")
 
-    col1, col2 = st.columns(2)
+    resume_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+    jd_text = st.text_area("Paste Job Description")
 
-    with col1:
-        resume_file = st.file_uploader("Upload Your Resume (PDF or DOCX)", type=["pdf", "docx"])
-    with col2:
-        jd_text = st.text_area("Paste Job Description Here")
+    company_name = st.text_input("Target Company (Optional)")
 
-    if resume_file and jd_text:
-        resume_skills = extract_skills_from_resume(resume_file)
+    if st.button("Analyze") and resume_file and jd_text:
+        resume_text = get_pdf_text(resume_file)
+
+        resume_skills = extract_skills_from_resume(resume_text)
         jd_skills = extract_skills_from_jd(jd_text)
 
+        matched_skills = list(set(resume_skills) & set(jd_skills))
         missing_skills = list(set(jd_skills) - set(resume_skills))
 
-        st.subheader("Skills in Resume:")
-        st.write(", ".join(resume_skills) if resume_skills else "No skills found.")
+        st.subheader("Skill Match Summary")
+        st.markdown(f"✅ **Matched Skills ({len(matched_skills)}):** {', '.join(matched_skills)}")
+        st.markdown(f"❌ **Missing Skills ({len(missing_skills)}):** {', '.join(missing_skills)}")
 
-        st.subheader("Skills in Job Description:")
-        st.write(", ".join(jd_skills) if jd_skills else "No skills found.")
+        # Plot
+        plot_skill_match_pie(len(matched_skills), len(missing_skills))
 
-        st.subheader("Missing Skills:")
-        if missing_skills:
-            st.error(", ".join(missing_skills))
-        else:
-            st.success("Great! Your resume matches all required skills.")
-
-        st.subheader("Skill Match Overview:")
-        plot_skill_match_pie(resume_skills, jd_skills)
-
-        st.subheader("Top 5 Coding Questions from Target Company:")
-        company_name = get_company_from_jd(jd_text)
-        questions = get_top_missing_skills(company_name)
-        if questions:
-            for i, q in enumerate(questions, 1):
-                st.markdown(f"**Q{i}.** {q}")
-        else:
-            st.info("No questions found for this company.")
-
-def get_company_from_jd(jd_text):
-    lines = jd_text.lower().splitlines()
-    for line in lines:
-        if "company" in line or "organization" in line:
-            words = line.strip().split()
-            return words[-1].capitalize()
-    return "Unknown"
+        # Show top coding questions
+        if company_name:
+            company_questions = load_company_questions()
+            questions = company_questions.get(company_name.strip().lower())
+            if questions:
+                st.subheader(f"Top Coding Questions Asked by {company_name.title()}")
+                for i, q in enumerate(questions[:5], 1):
+                    st.markdown(f"**Q{i}:** {q}")
+            else:
+                st.info("No coding question data available for this company.")
+    elif st.button("Analyze"):
+        st.error("Please upload a resume and paste a job description.")
 
 if __name__ == "__main__":
     main()
