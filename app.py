@@ -1,35 +1,31 @@
 import streamlit as st
-from skill_extractor import extract_skills_from_resume
-from jd_parser import extract_skills_from_jd
+from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
+from jd_parser import get_top_missing_skills
 from visualization import plot_skill_match_pie
 import json
+import base64
 
-# Load custom CSS
+# Load CSS
 def load_css():
-    with open("assets/styles.css") as f:
+    with open("assets/style.css") as f:  # Corrected the file name
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Load top 5 coding questions for the selected company
-def load_company_questions(company):
-    try:
-        with open("company_coding_questions.json", "r") as file:
-            data = json.load(file)
-            return data.get(company.lower(), [])
-    except Exception as e:
-        return []
+# Load animation (optional for UI enhancement)
+def load_lottie_animation():
+    with open("assets/animations.json", "r") as f:
+        return json.load(f)
 
-# Streamlit App Layout
 def main():
     st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
     load_css()
 
-    st.title("Resume Skill Gap Analyzer")
-    st.write("Upload your resume and job description to identify missing skills and get company-specific interview questions.")
+    st.markdown("<h1 class='title'>Resume Skill Gap Analyzer</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='subtitle'>Compare your resume against the job description and improve your chances.</p>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        resume_file = st.file_uploader("Upload Resume (.pdf or .docx)", type=["pdf", "docx"])
+        resume_file = st.file_uploader("Upload Your Resume (PDF or DOCX)", type=["pdf", "docx"])
     with col2:
         jd_text = st.text_area("Paste Job Description Here")
 
@@ -38,34 +34,38 @@ def main():
         jd_skills = extract_skills_from_jd(jd_text)
 
         missing_skills = list(set(jd_skills) - set(resume_skills))
-        matched_skills = list(set(resume_skills) & set(jd_skills))
 
-        st.subheader("🔍 Skill Analysis")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Skills in Resume:**")
-            st.write(resume_skills)
-            st.markdown("**Missing Skills:**")
-            st.write(missing_skills)
-        with col2:
-            st.markdown("**Skills Required in JD:**")
-            st.write(jd_skills)
-            st.markdown("**Matched Skills:**")
-            st.write(matched_skills)
+        st.subheader("Skills in Resume:")
+        st.write(", ".join(resume_skills) if resume_skills else "No skills found.")
 
-        st.subheader("📊 Skill Match Visualization")
-        plot_skill_match_pie(matched_skills, missing_skills)
+        st.subheader("Skills in Job Description:")
+        st.write(", ".join(jd_skills) if jd_skills else "No skills found.")
 
-        st.subheader("🏢 Company-Specific Interview Questions")
-        company = st.text_input("Enter Target Company Name (e.g., Amazon, Google)").strip()
-        if company:
-            questions = load_company_questions(company)
-            if questions:
-                st.markdown(f"### Top 5 Interview Questions for {company.title()}:")
-                for i, q in enumerate(questions, 1):
-                    st.markdown(f"**Q{i}.** {q}")
-            else:
-                st.warning("No data available for this company.")
+        st.subheader("Missing Skills:")
+        if missing_skills:
+            st.error(", ".join(missing_skills))
+        else:
+            st.success("Great! Your resume matches all required skills.")
+
+        st.subheader("Skill Match Overview:")
+        plot_skill_match_pie(resume_skills, jd_skills)
+
+        st.subheader("Top 5 Coding Questions from Target Company:")
+        company_name = get_company_from_jd(jd_text)
+        questions = get_top_missing_skills(company_name)
+        if questions:
+            for i, q in enumerate(questions, 1):
+                st.markdown(f"**Q{i}.** {q}")
+        else:
+            st.info("No questions found for this company.")
+
+def get_company_from_jd(jd_text):
+    lines = jd_text.lower().splitlines()
+    for line in lines:
+        if "company" in line or "organization" in line:
+            words = line.strip().split()
+            return words[-1].capitalize()
+    return "Unknown"
 
 if __name__ == "__main__":
     main()
