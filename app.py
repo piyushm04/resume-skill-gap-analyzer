@@ -1,68 +1,75 @@
 import streamlit as st
 import json
+import os
 from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
 from jd_parser import parse_job_description
 from visualization import plot_skill_comparison, display_cards, display_loading
 
-# Load animation and CSS
+# Load and apply custom CSS
 def load_css():
-    with open("assets/style.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    css_path = "assets/styles.css"
+    if os.path.exists(css_path):
+        with open(css_path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ 'styles.css' not found in assets folder.")
 
-def load_animation():
-    try:
-        with open("assets/animations.json", "r") as f:
-            animation_data = json.load(f)
-        return animation_data
-    except Exception as e:
-        st.error("Failed to load animation.")
-        return None
+# Load company coding questions
+def load_questions():
+    with open("company_coding_questions.json") as f:
+        return json.load(f)
 
-# Title & Welcome Modal
-def show_welcome_modal(animation_data):
-    if "modal_shown" not in st.session_state:
-        st.session_state.modal_shown = True
-        st.markdown(
-            f"""
-            <div class="welcome-modal animate">
-                <h2>🚀 Welcome to Resume Skill Gap Analyzer</h2>
-                <p>Upload your resume and job description to discover your missing skills and prepare better!</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# Main App
+# Main logic
 def main():
     st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
     load_css()
-    animation_data = load_animation()
-    show_welcome_modal(animation_data)
 
-    st.markdown("<h1 class='title'>Resume Skill Gap Analyzer</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='description'>Compare your resume with a job description and identify missing skills.</p>", unsafe_allow_html=True)
+    # --- Navigation Bar ---
+    st.markdown("""
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2 class="nav-title">Resume Skill Gap Analyzer</h2>
+        </div>
+    </nav>
+    """, unsafe_allow_html=True)
 
-    resume_file = st.file_uploader("Upload your Resume (.pdf or .docx)", type=["pdf", "docx"])
-    job_description = st.text_area("Paste Job Description Here", height=200)
+    st.markdown("### 📄 Upload Your Resume (in .docx format)")
+    resume_file = st.file_uploader("Upload your resume", type=["docx"])
 
-    if st.button("Analyze Skills"):
-        if resume_file and job_description:
+    st.markdown("### 💼 Paste Job Description")
+    job_desc_input = st.text_area("Paste the job description here...", height=200)
+
+    if st.button("Analyze"):
+        if resume_file and job_desc_input:
             display_loading()
 
             # Extract skills
             resume_skills = extract_skills_from_resume(resume_file)
-            jd_skills = extract_skills_from_jd(job_description)
+            parsed_jd = parse_job_description(job_desc_input)
+            jd_skills = extract_skills_from_jd(parsed_jd)
 
-            matched_skills = resume_skills & jd_skills
-            missing_skills = jd_skills - resume_skills
-
-            st.subheader("Skill Comparison")
+            # Visualizations
             plot_skill_comparison(resume_skills, jd_skills)
 
-            display_cards("Matched Skills", matched_skills, "#d4edda")
-            display_cards("Missing Skills", missing_skills, "#f8d7da")
-        else:
-            st.warning("Please upload a resume and enter a job description to proceed.")
+            # Display skills
+            matched = resume_skills & jd_skills
+            missing = jd_skills - resume_skills
 
+            display_cards("✅ Skills in Resume & JD", matched, "#d4edda")
+            display_cards("❌ Missing Skills (Important to Learn)", missing, "#f8d7da")
+
+            # Show most asked questions
+            st.markdown("### 💡 Top Coding Questions Asked by the Company")
+            questions_data = load_questions()
+
+            for company, questions in questions_data.items():
+                if company.lower() in job_desc_input.lower():
+                    for q in questions[:5]:
+                        st.markdown(f"• {q}")
+                    break
+        else:
+            st.warning("Please upload a resume and enter a job description.")
+
+# Run the app
 if __name__ == "__main__":
     main()
