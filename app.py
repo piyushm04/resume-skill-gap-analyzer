@@ -18,15 +18,20 @@ def load_lottieurl(url: str):
 
 lottie_resume = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
 
-# Custom CSS Styling
+# Custom CSS for Dark Theme
 st.markdown("""
     <style>
-    html, body, [class*="css"]  {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
-        background-color: #f2f4f8;
+        background-color: #121212;
+        color: #e0e0e0;
     }
     .title {
-        color: #0052cc;
+        color: #1e90ff;
         font-size: 45px;
         font-weight: bold;
         text-align: center;
@@ -35,21 +40,21 @@ st.markdown("""
     .subtitle {
         text-align: center;
         font-size: 18px;
-        color: #555;
+        color: #aaaaaa;
         margin-bottom: 30px;
     }
     .section {
-        background-color: #ffffff;
+        background-color: #1e1e1e;
         padding: 25px;
         border-radius: 15px;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         margin-top: 25px;
         margin-bottom: 25px;
     }
     .skill-badge {
         display: inline-block;
-        background-color: #e0ffe6;
-        color: #1b5e20;
+        background-color: #2e7d32;
+        color: #ffffff;
         padding: 6px 12px;
         margin: 4px;
         border-radius: 25px;
@@ -63,7 +68,7 @@ st.markdown("""
         padding-bottom: 20px;
     }
     hr {
-        border-top: 1px solid #ccc;
+        border-top: 1px solid #444;
         margin-top: 50px;
     }
     </style>
@@ -71,7 +76,7 @@ st.markdown("""
 
 # Title
 st.markdown("<div class='title'>🚀 Resume Skill Gap Analyzer</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Compare your resume with the job description, identify missing skills & ace the interview!</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Compare your resume with job descriptions, identify missing skills & boost your interview chances!</div>", unsafe_allow_html=True)
 
 # Animation
 if lottie_resume:
@@ -85,7 +90,7 @@ def extract_text_from_pdf(uploaded_file):
         text += page.extract_text()
     return text
 
-# Skill Extraction Logic
+# Skill Extraction
 def extract_skills(text, skill_set):
     found = set()
     text = text.lower()
@@ -95,7 +100,7 @@ def extract_skills(text, skill_set):
             found.add(skill)
     return found
 
-# Load skills & question bank
+# Load JSON Data
 with open("company_coding_questions.json", "r") as f:
     company_data = json.load(f)
 
@@ -105,17 +110,17 @@ all_skills = {
     'data analysis', 'machine learning', 'mongodb'
 }
 
-# Uploads and Inputs
+# File Upload and Input
 with st.container():
     col1, col2 = st.columns(2)
     with col1:
         uploaded_file = st.file_uploader("📄 Upload Your Resume (PDF)", type="pdf")
     with col2:
-        company = st.text_input("🏢 Target Company (e.g., Google, Infosys, Amazon)")
+        company = st.text_input("🏢 Target Company (e.g., Google, TCS, Amazon)")
 
 job_description = st.text_area("📝 Paste Job Description Here", height=200)
 
-# Skill Analysis
+# Skill Gap Analysis
 if uploaded_file and job_description:
     st.markdown("<div class='section'>", unsafe_allow_html=True)
 
@@ -138,7 +143,7 @@ if uploaded_file and job_description:
     st.markdown("### ❌ Missing Skills")
     st.markdown("<div>" + "".join([f"<span class='skill-badge'>{skill}</span>" for skill in missing_skills]) + "</div>", unsafe_allow_html=True)
 
-    st.markdown(f"<h4 style='color: #ff9f1c;'>🎯 Match Percentage: <b>{match_percent:.2f}%</b></h4>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='color: #ffc107;'>🎯 Match Percentage: <b>{match_percent:.2f}%</b></h4>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
     # Coding Questions
@@ -156,4 +161,4 @@ if uploaded_file and job_description:
 
 # Footer
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown(f"<div class='footer'>© {datetime.now().year} Resume Skill Gap Analyzer | Designed with 💡 by Piyush Molawade</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='footer'>© {datetime.now().year} Resume Skill Gap Analyzer | Designed in 🇮🇳 by Piyush Molawade</div>", unsafe_allow_html=True)
