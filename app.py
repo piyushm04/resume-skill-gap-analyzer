@@ -4,21 +4,28 @@ from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
 from jd_parser import extract_job_description
 from visualization import plot_skill_match_pie
 
-# Utility to extract company name
-def extract_company_name(text):
-    import re
-    match = re.search(r'at\s+([A-Z][a-zA-Z& ]+)', text)
-    return match.group(1).strip() if match else "Unknown"
 
 def main():
     st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
     st.title("Resume Skill Gap Analyzer")
 
-    # Resume upload
+    # Upload resume
     resume_file = st.file_uploader("Upload your resume (PDF or DOCX)", type=["pdf", "docx"])
 
     # Job description input
     job_description_text = st.text_area("Paste the Job Description")
+
+    # Load coding question data once
+    try:
+        with open("company_coding_questions.json", "r") as f:
+            question_data = json.load(f)
+        company_list = sorted(question_data.keys())
+    except:
+        question_data = {}
+        company_list = []
+
+    # Dropdown to select target company
+    selected_company = st.selectbox("Select Targeted Company", company_list)
 
     if st.button("Analyze"):
         if resume_file is not None and job_description_text.strip():
@@ -30,21 +37,13 @@ def main():
             missing_skills = list(set(jd_skills) - set(resume_skills))
 
             # SECTION 1 — Show Coding Questions First
-            company_name = extract_company_name(job_description_text)
-            try:
-                with open("company_coding_questions.json", "r") as f:
-                    question_data = json.load(f)
-
-                questions = question_data.get(company_name)
-
-                if questions:
-                    st.subheader(f"Most Asked Coding Questions at {company_name}")
-                    for i, q in enumerate(questions[:10], 1):  # Show top 10
-                        st.markdown(f"**{i}.** {q}")
-                else:
-                    st.info(f"No coding questions found for **{company_name}**.")
-            except Exception as e:
-                st.error("Error loading coding questions.")
+            st.subheader(f"Top Coding Questions Asked in {selected_company}")
+            questions = question_data.get(selected_company)
+            if questions:
+                for i, q in enumerate(questions[:10], 1):
+                    st.markdown(f"**{i}.** {q}")
+            else:
+                st.info(f"No coding questions found for **{selected_company}**.")
 
             # SECTION 2 — Show Skill Match
             st.subheader("Skill Match Analysis")
@@ -68,9 +67,9 @@ def main():
 
             # Visualization pie chart
             plot_skill_match_pie(len(matched_skills), len(missing_skills))
-
         else:
             st.warning("Please upload a resume and enter a job description.")
+
 
 if __name__ == "__main__":
     main()
