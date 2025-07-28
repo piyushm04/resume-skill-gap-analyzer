@@ -1,23 +1,43 @@
-import docx2txt
+import re
 import fitz  # PyMuPDF
 
-def extract_text_from_pdf(pdf_file):
-    text = ""
-    with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
+# Define some generic and technical skills to extract
+GENERIC_SKILLS = [
+    "communication", "teamwork", "problem-solving", "leadership", "time management",
+    "adaptability", "creativity", "interpersonal skills", "critical thinking"
+]
+
+TECHNICAL_SKILLS = [
+    "python", "java", "c++", "sql", "html", "css", "javascript", "react", "node.js",
+    "machine learning", "deep learning", "data analysis", "excel", "power bi", "aws",
+    "docker", "kubernetes", "tensorflow", "pytorch", "git", "github"
+]
+
+ALL_SKILLS = set(skill.lower() for skill in (GENERIC_SKILLS + TECHNICAL_SKILLS))
+
+
+# ✅ Extract text from resume file
+def extract_text_from_file(file):
+    if file.name.endswith(".pdf"):
+        doc = fitz.open(stream=file.read(), filetype="pdf")
+        text = ""
         for page in doc:
             text += page.get_text()
-    return text
-
-def extract_skills_from_resume(resume_file):
-    filename = resume_file.name.lower()
-
-    if filename.endswith(".pdf"):
-        text = extract_text_from_pdf(resume_file)
-    elif filename.endswith(".docx"):
-        text = docx2txt.process(resume_file)
+        return text
     else:
-        return set()
+        return file.read().decode("utf-8")
 
-    keywords = {"python", "java", "c++", "sql", "html", "css", "javascript", "aws", "react", "node.js"}
-    found_skills = {word for word in keywords if word.lower() in text.lower()}
-    return found_skills
+
+# ✅ Extract skills from resume text
+def extract_skills_from_resume(file):
+    text = extract_text_from_file(file)
+    text = text.lower()
+    found_skills = [skill for skill in ALL_SKILLS if skill in text]
+    return list(set(found_skills))
+
+
+# ✅ Extract skills from job description
+def extract_skills_from_jd(jd_text):
+    jd_text = jd_text.lower()
+    found_skills = [skill for skill in ALL_SKILLS if skill in jd_text]
+    return list(set(found_skills))
