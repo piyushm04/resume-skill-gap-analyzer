@@ -32,7 +32,8 @@ def load_lottieurl(url):
         return None
     return r.json()
 
-lottie_resume = load_lottieurl("https://lottie.host/3a87084d-3e14-4d65-82a5-c83e14b68ac1/lijD6uXjKq.json")
+lottie_resume = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
+
 
 # ========== Skill Set ==========
 common_skills = {
