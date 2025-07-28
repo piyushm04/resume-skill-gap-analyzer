@@ -1,76 +1,76 @@
 import streamlit as st
+import json
 from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
 from jd_parser import extract_job_description
 from visualization import plot_skill_match_pie
-import json
-import os
 
-# Load custom CSS
-def load_css():
-    css_path = os.path.join("assets", "styles.css")
-    if os.path.exists(css_path):
-        with open(css_path) as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    else:
-        st.warning("Custom CSS file not found.")
+# Utility to extract company name
+def extract_company_name(text):
+    import re
+    match = re.search(r'at\s+([A-Z][a-zA-Z& ]+)', text)
+    return match.group(1).strip() if match else "Unknown"
 
-# Load top coding questions
-def get_top_questions(company):
-    try:
-        with open("company_coding_questions.json", "r") as file:
-            questions = json.load(file)
-        return questions.get(company.lower(), ["No questions found for this company."])
-    except Exception as e:
-        return [f"Error loading questions: {str(e)}"]
-
-# Main Streamlit app
 def main():
     st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
-    load_css()
-    
     st.title("Resume Skill Gap Analyzer")
-    st.write("Upload your resume and paste a job description to analyze the skill gap.")
 
-    resume_file = st.file_uploader("Upload Resume (PDF/Text)", type=["pdf", "txt"])
-    job_description = st.text_area("Paste Job Description")
+    # Resume upload
+    resume_file = st.file_uploader("Upload your resume (PDF or DOCX)", type=["pdf", "docx"])
+
+    # Job description input
+    job_description_text = st.text_area("Paste the Job Description")
 
     if st.button("Analyze"):
-        if resume_file and job_description:
-            with st.spinner("Extracting skills..."):
-                resume_skills = extract_skills_from_resume(resume_file)
-                jd_skills = extract_skills_from_jd(job_description)
+        if resume_file is not None and job_description_text.strip():
+            # Extract skills
+            resume_skills = extract_skills_from_resume(resume_file)
+            jd_skills = extract_skills_from_jd(job_description_text)
 
-                missing_skills = list(set(jd_skills) - set(resume_skills))
-                matched_skills = list(set(jd_skills) & set(resume_skills))
+            matched_skills = list(set(resume_skills) & set(jd_skills))
+            missing_skills = list(set(jd_skills) - set(resume_skills))
 
-                st.success("Analysis complete!")
-                col1, col2 = st.columns(2)
+            # SECTION 1 — Show Coding Questions First
+            company_name = extract_company_name(job_description_text)
+            try:
+                with open("company_coding_questions.json", "r") as f:
+                    question_data = json.load(f)
 
-                with col1:
-                    st.subheader("Matched Skills")
-                    if matched_skills:
-                        st.write(", ".join(matched_skills))
-                    else:
-                        st.write("No matched skills found.")
+                questions = question_data.get(company_name)
 
-                with col2:
-                    st.subheader("Missing Skills")
-                    if missing_skills:
-                        st.write(", ".join(missing_skills))
-                    else:
-                        st.write("No missing skills found.")
+                if questions:
+                    st.subheader(f"Most Asked Coding Questions at {company_name}")
+                    for i, q in enumerate(questions[:10], 1):  # Show top 10
+                        st.markdown(f"**{i}.** {q}")
+                else:
+                    st.info(f"No coding questions found for **{company_name}**.")
+            except Exception as e:
+                st.error("Error loading coding questions.")
 
-                st.subheader("Visual Representation")
-                plot_skill_match_pie(len(matched_skills), len(missing_skills))
+            # SECTION 2 — Show Skill Match
+            st.subheader("Skill Match Analysis")
+            col1, col2 = st.columns(2)
 
-                st.subheader("Top Coding Questions for Target Company")
-                company = st.text_input("Enter Target Company Name")
-                if company:
-                    top_questions = get_top_questions(company)
-                    for q in top_questions:
-                        st.markdown(f"- {q}")
+            with col1:
+                st.markdown("**Matched Skills:**")
+                if matched_skills:
+                    for skill in matched_skills:
+                        st.success(skill)
+                else:
+                    st.warning("No matched skills found.")
+
+            with col2:
+                st.markdown("**Missing Skills:**")
+                if missing_skills:
+                    for skill in missing_skills:
+                        st.error(skill)
+                else:
+                    st.info("No missing skills 🎯")
+
+            # Visualization pie chart
+            plot_skill_match_pie(len(matched_skills), len(missing_skills))
+
         else:
-            st.warning("Please upload a resume and paste a job description to proceed.")
+            st.warning("Please upload a resume and enter a job description.")
 
 if __name__ == "__main__":
     main()
