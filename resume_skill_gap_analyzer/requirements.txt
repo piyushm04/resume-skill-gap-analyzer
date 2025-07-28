@@ -1,0 +1,10 @@
+streamlit
+PyPDF2
+matplotlib
+docx2txt
+PyMuPDF
+streamlit-lottie
+requests
+pandas
+scikit-learn
+openai
