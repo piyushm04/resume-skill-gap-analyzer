@@ -1,23 +1,49 @@
 import docx2txt
-import fitz  # PyMuPDF
+import PyPDF2
+import io
+import re
 
-def extract_text_from_pdf(pdf_file):
+def extract_text_from_pdf(file):
+    pdf_reader = PyPDF2.PdfReader(file)
     text = ""
-    with fitz.open(stream=pdf_file.read(), filetype="pdf") as doc:
-        for page in doc:
-            text += page.get_text()
+    for page in pdf_reader.pages:
+        text += page.extract_text() or ""
     return text
 
-def extract_skills_from_resume(resume_file):
-    filename = resume_file.name.lower()
+def extract_text_from_docx(file):
+    return docx2txt.process(file)
 
-    if filename.endswith(".pdf"):
-        text = extract_text_from_pdf(resume_file)
-    elif filename.endswith(".docx"):
-        text = docx2txt.process(resume_file)
+def clean_text(text):
+    # Remove special characters, digits, extra spaces
+    text = re.sub(r"[^a-zA-Z\s]", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.lower()
+
+def extract_skills_from_resume(resume_file):
+    if resume_file.name.endswith(".pdf"):
+        raw_text = extract_text_from_pdf(resume_file)
+    elif resume_file.name.endswith(".docx"):
+        raw_text = extract_text_from_docx(resume_file)
     else:
         return set()
 
-    keywords = {"python", "java", "c++", "sql", "html", "css", "javascript", "aws", "react", "node.js"}
-    found_skills = {word for word in keywords if word.lower() in text.lower()}
-    return found_skills
+    cleaned = clean_text(raw_text)
+    return extract_skills_from_text(cleaned)
+
+def extract_skills_from_text(text):
+    # Simple predefined skill set
+    predefined_skills = {
+        "python", "java", "c", "c++", "html", "css", "javascript",
+        "sql", "mysql", "mongodb", "react", "node.js", "git", "linux",
+        "machine learning", "deep learning", "data analysis", "django", "flask"
+    }
+
+    found = set()
+    for skill in predefined_skills:
+        if skill in text:
+            found.add(skill)
+    return found
+
+def extract_skills_from_jd(jd_text):
+    cleaned = clean_text(jd_text)
+    return extract_skills_from_text(cleaned)
