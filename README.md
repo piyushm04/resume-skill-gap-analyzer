@@ -16,4 +16,14 @@ A Streamlit web app that compares your resume against a job description and show
 ---
 
 ## 📁 Folder Structure
+resume-skill-gap-analyzer/
+│
+├── app.py # Main Streamlit app
+├── requirements.txt # Required dependencies
+├── company_coding_questions.json # Sample interview questions per company
+└── README.md # Project documentation
+
+yaml
+Copy
+Edit
 
