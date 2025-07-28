@@ -1,4 +1,15 @@
-def extract_skills_from_jd(jd_text):
-    keywords = {"python", "java", "c++", "sql", "html", "css", "javascript", "aws", "react", "node.js"}
-    found_skills = {word for word in keywords if word.lower() in jd_text.lower()}
-    return found_skills
+import re
+
+def extract_job_description(text):
+    """
+    Cleans and returns job description text.
+    Assumes raw text input (from textarea or file).
+    """
+    # Remove HTML tags if any
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', text)
+
+    # Normalize whitespace
+    cleantext = re.sub(r'\s+', ' ', cleantext).strip()
+
+    return cleantext
