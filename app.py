@@ -1,32 +1,16 @@
 import streamlit as st
 import PyPDF2
-import re
 import json
-import matplotlib.pyplot as plt
-from streamlit_lottie import st_lottie
+import re
 import requests
+from datetime import datetime
+from streamlit_lottie import st_lottie
 
-# ========== Custom Styling ==========
-st.set_page_config(page_title="Skill Gap Analyzer", layout="wide")
+# Page config
+st.set_page_config(page_title="Resume Skill Gap Analyzer", layout="wide")
 
-# Apply clean CSS for layout polish
-st.markdown("""
-    <style>
-    .reportview-container {
-        background: linear-gradient(to right, #f9f9f9, #e0f7fa);
-    }
-    .block-container {
-        padding: 2rem;
-        border-radius: 10px;
-    }
-    h1, h2, h3 {
-        color: #2c3e50;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Load Lottie animation (from URL)
-def load_lottieurl(url):
+# Load Lottie Animation
+def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200:
         return None
@@ -34,93 +18,81 @@ def load_lottieurl(url):
 
 lottie_resume = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json")
 
+if lottie_resume:
+    st_lottie(lottie_resume, speed=1, height=250, key="resume")
 
-# ========== Skill Set ==========
-common_skills = {
-    'python', 'java', 'c++', 'c', 'html', 'css', 'javascript', 'django', 'flask',
-    'react', 'nodejs', 'mysql', 'mongodb', 'rest api', 'git', 'github', 'sql',
-    'machine learning', 'deep learning', 'data structures', 'algorithms',
-    'data analysis', 'pandas', 'numpy', 'matplotlib', 'tensorflow', 'keras',
-    'linux', 'cloud', 'aws', 'azure', 'devops', 'docker', 'kubernetes'
-}
+# Title and Subtitle
+st.markdown("<h1 style='text-align: center; color: #4CAF50;'>📊 Resume Skill Gap Analyzer</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center; color: gray;'>Upload your resume and enter a job description to find missing skills and top company questions</h4>", unsafe_allow_html=True)
 
-# ========== Helper Functions ==========
+# Extract text from PDF
 def extract_text_from_pdf(uploaded_file):
     reader = PyPDF2.PdfReader(uploaded_file)
-    text = ''
+    text = ""
     for page in reader.pages:
-        text += page.extract_text() or ''
-    return text.lower()
+        text += page.extract_text()
+    return text
 
+# Extract skills
 def extract_skills(text, skill_set):
-    return {skill for skill in skill_set if re.search(r'\b' + re.escape(skill) + r'\b', text)}
+    found = set()
+    text = text.lower()
+    for skill in skill_set:
+        pattern = r'\b' + re.escape(skill.lower()) + r'\b'
+        if re.search(pattern, text):
+            found.add(skill)
+    return found
 
-# ========== UI ==========
-st_lottie(lottie_resume, speed=1, height=200, key="intro")
+# Load skills and company questions
+all_skills = {'python', 'java', 'c', 'c++', 'sql', 'mysql', 'html', 'css', 'javascript', 'react', 'nodejs', 'git', 'github', 'pandas', 'numpy', 'data analysis', 'machine learning', 'mongodb'}
 
-st.title("📄 Resume Skill Gap Analyzer")
-st.markdown("Upload your resume, paste the job description, and get a professional skill gap report with top company questions.")
+with open("company_coding_questions.json", "r") as f:
+    company_data = json.load(f)
 
-st.markdown("---")
-col1, col2 = st.columns(2)
+# Upload Resume
+uploaded_file = st.file_uploader("📄 Upload your Resume (PDF format)", type="pdf")
 
-# ========== Upload Resume ==========
-with col1:
-    st.subheader("📤 Upload Resume (PDF)")
-    uploaded_file = st.file_uploader("Choose a file", type="pdf")
+# Job Description
+job_description = st.text_area("📝 Paste the Job Description")
 
-# ========== Job Description ==========
-with col2:
-    st.subheader("📋 Paste Job Description")
-    jd_text = st.text_area("Paste here...")
+# Company Name
+company = st.text_input("🏢 Enter the Company Name (e.g., Google, Amazon)")
 
-# ========== Process ==========
-if uploaded_file and jd_text:
+if uploaded_file and job_description:
     resume_text = extract_text_from_pdf(uploaded_file)
-    resume_skills = extract_skills(resume_text, common_skills)
-    jd_text = jd_text.lower()
-    jd_skills = extract_skills(jd_text, common_skills)
+    
+    skills_in_resume = extract_skills(resume_text, all_skills)
+    skills_from_jd = extract_skills(job_description, all_skills)
+    
+    missing_skills = skills_from_jd - skills_in_resume
+    match_percentage = (len(skills_in_resume & skills_from_jd) / len(skills_from_jd)) * 100 if skills_from_jd else 0
 
-    missing_skills = jd_skills - resume_skills
-    matched_skills = resume_skills & jd_skills
-    match_percent = round((len(matched_skills) / len(jd_skills)) * 100, 2) if jd_skills else 0
+    st.markdown("### ✅ Skills in Resume")
+    st.write(skills_in_resume)
 
-    st.markdown("---")
-    st.subheader("📊 Skill Match Report")
+    st.markdown("### 📌 Skills from Job Description")
+    st.write(skills_from_jd)
 
-    # === Pie Chart ===
-    fig, ax = plt.subplots()
-    ax.pie(
-        [len(matched_skills), len(missing_skills)],
-        labels=["Matched", "Missing"],
-        autopct="%1.1f%%",
-        colors=["#00C853", "#D50000"]
-    )
-    st.pyplot(fig)
+    st.markdown("### ❌ Missing Skills")
+    st.write(missing_skills)
 
-    # === Skill Sets ===
-    st.markdown(f"🎯 **Match Percentage:** `{match_percent}%`")
-    st.success(f"✅ **Matched Skills:** {', '.join(sorted(matched_skills))}")
-    st.warning(f"❌ **Missing Skills:** {', '.join(sorted(missing_skills))}")
-    st.info(f"📌 **All JD Skills:** {', '.join(sorted(jd_skills))}")
+    st.markdown(f"### 🎯 Match Percentage: `{match_percentage:.2f}%`")
 
-    # === Company Questions ===
-    st.markdown("---")
-    st.subheader("🏢 Top Coding Questions by Company")
-    company = st.text_input("Enter Company Name (e.g. amazon, tcs, google)").lower().strip()
-
+    # Top Company Questions
     if company:
-        try:
-            with open("company_coding_questions.json", "r") as f:
-                company_data = json.load(f)
+        company = company.lower().strip()
+        company_questions = company_data.get(company, [])
+        
+        if company_questions:
+            st.markdown(f"### 💻 Top Coding Questions Asked by `{company.capitalize()}`")
+            for i, q in enumerate(company_questions[:10], 1):
+                st.markdown(f"**{i}. {q}**")
+        else:
+            st.warning("🚫 No coding questions found for this company. Check the spelling or update the JSON file.")
 
-            top_questions = company_data.get(company, [])
-            if top_questions:
-                for i, q in enumerate(top_questions[:10], 1):
-                    st.markdown(f"**{i}.** {q}")
-            else:
-                st.warning("⚠️ No questions found for this company.")
-        except:
-            st.error("❌ Couldn't load questions.")
-else:
-    st.info("📎 Upload resume and job description to begin.")
+# Footer
+st.markdown("---")
+st.markdown(
+    f"<div style='text-align: center; color: gray;'>© {datetime.now().year} Resume Skill Gap Analyzer | Built by Piyush Molawade</div>",
+    unsafe_allow_html=True
+)
