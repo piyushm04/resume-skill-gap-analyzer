@@ -1,0 +1,92 @@
+{
+  "tcs": {
+    "about": "TCS focuses on aptitude, logical reasoning and basic coding concepts.",
+    "top_coding_questions": [
+      "Check if a number is prime",
+      "Fibonacci series using recursion",
+      "Palindrome string check",
+      "Reverse a string",
+      "Armstrong number",
+      "Find factorial of a number",
+      "Linear search",
+      "Bubble sort",
+      "Sum of digits in a number",
+      "LCM and GCD of two numbers"
+    ]
+  },
+  "infosys": {
+    "about": "Infosys interviews often include basic to intermediate DSA problems.",
+    "top_coding_questions": [
+      "Find second largest number in array",
+      "Check for anagram",
+      "Factorial using recursion",
+      "Swap two numbers without third variable",
+      "Sum of digits in a number",
+      "Count vowels in a string",
+      "Binary to decimal conversion",
+      "Print pyramid pattern",
+      "Check Armstrong number",
+      "String reversal"
+    ]
+  },
+  "capgemini": {
+    "about": "Capgemini emphasizes on logical thinking and string/array-based problems.",
+    "top_coding_questions": [
+      "Find missing number in array",
+      "Sort elements using selection sort",
+      "Check prime number",
+      "Reverse words in a string",
+      "Check for palindrome number",
+      "Print all even numbers in a range",
+      "Factorial of large number",
+      "Binary search",
+      "Rotate array",
+      "Count digits in number"
+    ]
+  },
+  "bently": {
+    "about": "Bentley Systems focuses on real-world problem-solving and programming basics.",
+    "top_coding_questions": [
+      "Check if string is palindrome",
+      "Find GCD of two numbers",
+      "Matrix transpose",
+      "Sum of all array elements",
+      "Implement queue using stack",
+      "Detect loop in linked list",
+      "Implement stack using array",
+      "Reverse a linked list",
+      "Sort characters in a string",
+      "Search element in 2D matrix"
+    ]
+  },
+  "flipkart": {
+    "about": "Flipkart interviews focus on DSA, problem-solving and real-time system skills.",
+    "top_coding_questions": [
+      "Find kth largest element in array",
+      "Two sum problem",
+      "Longest common subsequence",
+      "Balanced parentheses check",
+      "Minimum jumps to reach end",
+      "Majority element in array",
+      "Find duplicates in array",
+      "Check if linked list is palindrome",
+      "Find median in stream",
+      "LRU Cache implementation"
+    ]
+  },
+  "amazon": {
+    "about": "Amazon coding rounds involve array, string, and tree-based problems.",
+    "top_coding_questions": [
+      "Subarray with given sum",
+      "Merge two sorted arrays",
+      "Longest substring without repeating characters",
+      "Rotten oranges problem",
+      "Trapping rain water",
+      "Clone a linked list",
+      "Word ladder problem",
+      "Group anagrams",
+      "Cycle detection in graph",
+      "Top K frequent elements"
+    ]
+  }
+}
