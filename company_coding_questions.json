@@ -1,16 +1,142 @@
 {
-  "Google": [
-    "What is the time complexity of quicksort?",
-    "Explain dynamic programming with an example.",
-    "What are hashmaps and how are they used?",
-    "How do you detect a cycle in a graph?",
-    "What is the difference between BFS and DFS?"
-  ],
-  "Microsoft": [
-    "What is a linked list?",
-    "Implement LRU cache.",
-    "Explain OOP concepts.",
-    "How do you reverse a string?",
-    "What are stacks and queues?"
-  ]
+    "Google": [
+        "Two Sum",
+        "Longest Substring Without Repeating Characters",
+        "Median of Two Sorted Arrays",
+        "Word Break",
+        "Merge Intervals"
+    ],
+    "Amazon": [
+        "LRU Cache",
+        "Trapping Rain Water",
+        "K Closest Points to Origin",
+        "Top K Frequent Elements",
+        "Maximum Subarray"
+    ],
+    "Microsoft": [
+        "Course Schedule",
+        "Binary Tree Level Order Traversal",
+        "Clone Graph",
+        "Set Matrix Zeroes",
+        "Spiral Matrix"
+    ],
+    "Facebook": [
+        "Add Two Numbers",
+        "Longest Palindromic Substring",
+        "Word Ladder",
+        "Minimum Window Substring",
+        "Subsets"
+    ],
+    "Apple": [
+        "3Sum",
+        "Validate Binary Search Tree",
+        "Search in Rotated Sorted Array",
+        "Find Peak Element",
+        "Number of Islands"
+    ],
+    "Netflix": [
+        "Longest Consecutive Sequence",
+        "Design Twitter",
+        "Find Median from Data Stream",
+        "Sliding Window Maximum",
+        "Decode Ways"
+    ],
+    "Adobe": [
+        "Rotate Image",
+        "Unique Paths",
+        "Jump Game",
+        "Combination Sum",
+        "Container With Most Water"
+    ],
+    "Uber": [
+        "Insert Delete GetRandom O(1)",
+        "Accounts Merge",
+        "Random Pick with Weight",
+        "Serialize and Deserialize Binary Tree",
+        "Critical Connections in a Network"
+    ],
+    "Samsung": [
+        "Chocolate Distribution Problem",
+        "Allocate Minimum Number of Pages",
+        "Stock Buy Sell to Maximize Profit",
+        "Rat in a Maze",
+        "N-Queens"
+    ],
+    "Flipkart": [
+        "Kth Largest Element in an Array",
+        "Minimum Number of Platforms",
+        "Activity Selection",
+        "Detect Cycle in Directed Graph",
+        "Dijkstra's Algorithm"
+    ],
+    "IBM": [
+        "Knight Walk",
+        "Print Matrix in Diagonal Pattern",
+        "Sum of Subarray Minimums",
+        "Find Duplicate Subtrees",
+        "Rearrange String k Distance Apart"
+    ],
+    "Infosys": [
+        "Check Balanced Parentheses",
+        "Count Inversions",
+        "Longest Increasing Subsequence",
+        "Matrix Chain Multiplication",
+        "Egg Dropping Puzzle"
+    ],
+    "TCS": [
+        "Anagram Check",
+        "Missing Number",
+        "Find First and Last Position of Element",
+        "Rotate Array",
+        "Peak Element"
+    ],
+    "Wipro": [
+        "Find Duplicates",
+        "Power Set",
+        "Majority Element",
+        "Merge Sorted Arrays",
+        "Binary Search"
+    ],
+    "Accenture": [
+        "Search Insert Position",
+        "Check Palindrome",
+        "Intersection of Two Arrays",
+        "Move Zeroes",
+        "Max Consecutive Ones"
+    ],
+    "Capgemini": [
+        "Remove Duplicates",
+        "Two Sum II",
+        "Plus One",
+        "Climbing Stairs",
+        "Valid Parentheses"
+    ],
+    "HCL": [
+        "Find Missing Number",
+        "Single Number",
+        "Check for BST",
+        "Zigzag Level Order Traversal",
+        "Lowest Common Ancestor"
+    ],
+    "Oracle": [
+        "Longest Common Prefix",
+        "Roman to Integer",
+        "Integer to Roman",
+        "Zigzag Conversion",
+        "Letter Combinations of a Phone Number"
+    ],
+    "Nvidia": [
+        "Max Area of Island",
+        "Counting Bits",
+        "Range Sum Query",
+        "Maximal Square",
+        "Game of Life"
+    ],
+    "Salesforce": [
+        "Group Anagrams",
+        "Count and Say",
+        "Implement Trie",
+        "Word Search",
+        "Basic Calculator"
+    ]
 }
