@@ -23,3 +23,7 @@ def display_cards(title, content_set, color="#f0f0f0"):
         <p style='color: #000'>{", ".join(content_set) if content_set else "None"}</p>
     </div>
     """, unsafe_allow_html=True)
+
+def display_loading():
+    with st.spinner("Analyzing... Please wait..."):
+        st.markdown("<br>", unsafe_allow_html=True)
