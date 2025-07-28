@@ -1,10 +1,11 @@
 import streamlit as st
 import json
 import time
-from skill_extractor import extract_skills_from_resume, extract_skills_from_jd
-from jd_parser import parse_job_description
+from skill_extractor import extract_skills_from_resume
+from jd_parser import extract_skills_from_jd, parse_job_description
 from visualization import plot_skill_match_pie
 from streamlit_lottie import st_lottie
+
 
 # Load Lottie animation
 def load_lottie_animation(path: str):
