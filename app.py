@@ -3,7 +3,7 @@ import PyPDF2
 import re
 import json
 
-# === Common Skills List ===
+# === Define standard skills ===
 common_skills = {
     'python', 'java', 'c++', 'c', 'html', 'css', 'javascript', 'django', 'flask',
     'react', 'nodejs', 'mysql', 'mongodb', 'rest api', 'git', 'github', 'sql',
@@ -12,15 +12,15 @@ common_skills = {
     'linux', 'cloud', 'aws', 'azure', 'devops', 'docker', 'kubernetes'
 }
 
-# === Extract Text from PDF ===
-def extract_text_from_pdf(uploaded_file):
-    reader = PyPDF2.PdfReader(uploaded_file)
+# === Extract text from PDF ===
+def extract_text_from_pdf(pdf_file):
+    reader = PyPDF2.PdfReader(pdf_file)
     text = ''
     for page in reader.pages:
         text += page.extract_text() or ''
     return text.lower()
 
-# === Skill Extraction Function ===
+# === Extract relevant skills from text ===
 def extract_skills(text, skill_set):
     found = set()
     for skill in skill_set:
@@ -28,51 +28,51 @@ def extract_skills(text, skill_set):
             found.add(skill)
     return found
 
-# === Streamlit App Starts ===
-st.set_page_config(page_title="Skill Gap Analyzer", layout="centered")
-st.title("💼 Resume Skill Gap Analyzer + Interview Q&A")
+# === Streamlit UI ===
+st.title("📄 Resume Skill Gap Analyzer")
+st.write("Upload your resume and paste a job description to find missing skills and view company questions.")
 
-# Upload Resume
-resume_file = st.file_uploader("📤 Upload your Resume (PDF)", type=["pdf"])
+# === Upload Resume ===
+resume_pdf = st.file_uploader("📤 Upload Resume (PDF)", type="pdf")
 
-# Job Description Input
-jd_text = st.text_area("📋 Paste the Job Description here (Text only)")
-
-# Dream Company Input
-company = st.text_input("🏢 Enter your Dream Company (e.g. tcs, amazon, infosys)").strip().lower()
-
-if resume_file and jd_text:
-    resume_text = extract_text_from_pdf(resume_file)
+if resume_pdf:
+    resume_text = extract_text_from_pdf(resume_pdf)
     resume_skills = extract_skills(resume_text, common_skills)
-    jd_skills = extract_skills(jd_text.lower(), common_skills)
 
-    # Skill Gap & Match %
-    missing_skills = jd_skills - resume_skills
-    match_percent = round((len(resume_skills & jd_skills) / len(jd_skills)) * 100, 2) if jd_skills else 0
+    # === Job Description input ===
+    jd_text = st.text_area("📋 Paste Job Description Here:")
+    if jd_text:
+        jd_text = jd_text.lower()
+        jd_skills = extract_skills(jd_text, common_skills)
 
-    # Display Result
-    st.subheader("📊 Skill Gap Report")
-    st.write("✅ Skills in Resume:", resume_skills)
-    st.write("📌 Skills from JD:", jd_skills)
-    st.write("❌ Missing Skills:", missing_skills)
-    st.success(f"🎯 Match Percentage: {match_percent}%")
+        # === Calculate gap ===
+        missing_skills = jd_skills - resume_skills
+        match_percent = round((len(resume_skills & jd_skills) / len(jd_skills)) * 100, 2) if jd_skills else 0
 
-    # Load Company Questions
-    try:
-        with open("company_coding_questions.json", "r") as f:
-            company_data = json.load(f)
-        top_questions = company_data.get(company, [])[:10]
+        # === Select company ===
+        company = st.text_input("🏢 Enter Target Company (e.g., amazon, tcs)").strip().lower()
 
-        st.subheader(f"💡 Top 10 Interview Questions - {company.title()}")
-        if top_questions:
-            for i, q in enumerate(top_questions, 1):
-                st.markdown(f"**{i}.** {q}")
-        else:
-            st.warning("⚠️ No questions found for this company.")
-    except FileNotFoundError:
-        st.error("❌ JSON file not found. Please add 'company_coding_questions.json' in the folder.")
+        if company:
+            try:
+                with open("company_coding_questions.json", "r") as f:
+                    company_data = json.load(f)
 
-elif resume_file:
-    st.warning("📋 Please paste Job Description text.")
-elif jd_text:
-    st.warning("📤 Please upload your resume (PDF).")
+                st.write("📁 Available companies:", list(company_data.keys()))
+
+                top_questions = company_data.get(company, [])
+
+                # === Show Report ===
+                st.subheader("📊 Skill Gap Report")
+                st.markdown(f"✅ **Skills in Resume**: {', '.join(sorted(resume_skills)) or 'None'}")
+                st.markdown(f"📌 **Skills from JD**: {', '.join(sorted(jd_skills)) or 'None'}")
+                st.markdown(f"❌ **Missing Skills**: {', '.join(sorted(missing_skills)) or 'None'}")
+                st.markdown(f"🎯 **Match Percentage**: `{match_percent}%`")
+
+                st.subheader(f"💡 Top Questions Asked in {company.title()}")
+                if top_questions:
+                    for i, q in enumerate(top_questions[:10], 1):
+                        st.markdown(f"**{i}.** {q}")
+                else:
+                    st.warning(f"No questions found for '{company}'. Please check the spelling.")
+            except FileNotFoundError:
+                st.error("company_coding_questions.json file not found. Please upload it.")
