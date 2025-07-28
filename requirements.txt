@@ -1,6 +1,8 @@
 streamlit
 PyPDF2
 matplotlib
+streamlit-lottie
+requests
 pandas
 scikit-learn
 openai
